@@ -35,7 +35,7 @@ add_custom_command(
       DEPENDS "${db_proto}")
 
 # Include generated *.pb.h files
-include_directories("${CMAKE_CURRENT_BINARY_DIR}")
+include_directories("${CMAKE_CURRENT_BINARY_DIR}" "include")
 
 # db_grpc_proto
 add_library(db_grpc_proto
@@ -50,7 +50,7 @@ target_link_libraries(db_grpc_proto
   ${_PROTOBUF_LIBPROTOBUF})
 
 # Target server
-add_executable(server serverMain.cpp)
+add_executable(server serverMain.cpp Database.cpp)
 target_link_libraries(server
   db_grpc_proto
   absl::check
@@ -62,7 +62,7 @@ target_link_libraries(server
   ${_PROTOBUF_LIBPROTOBUF})
 
 # Target client
-add_executable(client clientMain.cpp)
+add_executable(client clientMain.cpp Client.cpp)
 target_link_libraries(client
   db_grpc_proto
   absl::check

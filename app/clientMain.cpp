@@ -6,7 +6,7 @@
 #include "absl/flags/parse.h"
 #include "absl/log/log.h"
 
-#include "Client.h"
+#include "distdb/Client.h"
 
 ABSL_FLAG( std::string, target, "localhost:50051", "Server address" );
 

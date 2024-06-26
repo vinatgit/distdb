@@ -8,7 +8,7 @@
 #include "absl/log/log.h"
 #include "absl/strings/str_format.h"
 
-#include "Database.h"
+#include "distdb/Database.h"
 
 ABSL_FLAG( uint16_t, port, 50051, "Server port for the service" );
 
