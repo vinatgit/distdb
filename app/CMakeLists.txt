@@ -47,7 +47,7 @@ target_link_libraries(db_grpc_proto
 	absl::check
 	${_REFLECTION}
 	${_GRPC_GRPCPP}
-	${_PROTOBUG_LIBPROTOBUF})
+	${_PROTOBUF_LIBPROTOBUF})
 
 # Target server
 add_executable(server serverMain.cpp)
@@ -59,7 +59,7 @@ target_link_libraries(server
 	absl::log
 	${_REFLECTION}
 	${_GRPC_GRPCPP}
-        ${_PROTOBUG_LIBPROTOBUF})
+        ${_PROTOBUF_LIBPROTOBUF})
 
 # Target client
 add_executable(client clientMain.cpp)
@@ -71,4 +71,4 @@ target_link_libraries(client
         absl::log
         ${_REFLECTION}
         ${_GRPC_GRPCPP}
-        ${_PROTOBUG_LIBPROTOBUF})
+        ${_PROTOBUF_LIBPROTOBUF})
