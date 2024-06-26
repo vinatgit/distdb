@@ -25,50 +25,50 @@ set(db_proto_hdrs "${CMAKE_CURRENT_BINARY_DIR}/dbserver.pb.h")
 set(db_grpc_srcs "${CMAKE_CURRENT_BINARY_DIR}/dbserver.grpc.pb.cc")
 set(db_grpc_hdrs "${CMAKE_CURRENT_BINARY_DIR}/dbserver.grpc.pb.h")
 add_custom_command(
-	OUTPUT "${db_proto_srcs}" "${db_proto_hdrs}" "${db_grpc_srcs}" "${db_grpc_hdrs}"
-	COMMAND ${_PROTOBUF_PROTOC}
-	ARGS --grpc_out "${CMAKE_CURRENT_BINARY_DIR}"
-	  --cpp_out "${CMAKE_CURRENT_BINARY_DIR}"
-	  -I "${db_proto_path}"
-	  --plugin=protoc-gen-grpc="${_GRPC_CPP_PLUGIN_EXECUTABLE}"
-	  "${db_proto}"
-	DEPENDS "${db_proto}")
+      OUTPUT "${db_proto_srcs}" "${db_proto_hdrs}" "${db_grpc_srcs}" "${db_grpc_hdrs}"
+      COMMAND ${_PROTOBUF_PROTOC}
+      ARGS --grpc_out "${CMAKE_CURRENT_BINARY_DIR}"
+        --cpp_out "${CMAKE_CURRENT_BINARY_DIR}"
+        -I "${db_proto_path}"
+        --plugin=protoc-gen-grpc="${_GRPC_CPP_PLUGIN_EXECUTABLE}"
+        "${db_proto}"
+      DEPENDS "${db_proto}")
 
 # Include generated *.pb.h files
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
 # db_grpc_proto
 add_library(db_grpc_proto
-	${db_grpc_srcs}
-	${db_grpc_hdrs}
-	${db_grpc_srcs}
-	${db_grpc_hdrs})
+  ${db_grpc_srcs}
+  ${db_grpc_hdrs}
+  ${db_proto_srcs}
+  ${db_proto_hdrs})
 target_link_libraries(db_grpc_proto
-	absl::check
-	${_REFLECTION}
-	${_GRPC_GRPCPP}
-	${_PROTOBUF_LIBPROTOBUF})
+  absl::check
+  ${_REFLECTION}
+  ${_GRPC_GRPCPP}
+  ${_PROTOBUF_LIBPROTOBUF})
 
 # Target server
 add_executable(server serverMain.cpp)
 target_link_libraries(server
-	db_grpc_proto
-	absl::check
-	absl::flags
-	absl::flags_parse
-	absl::log
-	${_REFLECTION}
-	${_GRPC_GRPCPP}
-        ${_PROTOBUF_LIBPROTOBUF})
+  db_grpc_proto
+  absl::check
+  absl::flags
+  absl::flags_parse
+  absl::log
+  ${_REFLECTION}
+  ${_GRPC_GRPCPP}
+  ${_PROTOBUF_LIBPROTOBUF})
 
 # Target client
 add_executable(client clientMain.cpp)
 target_link_libraries(client
-        db_grpc_proto
-        absl::check
-        absl::flags
-        absl::flags_parse
-        absl::log
-        ${_REFLECTION}
-        ${_GRPC_GRPCPP}
-        ${_PROTOBUF_LIBPROTOBUF})
+  db_grpc_proto
+  absl::check
+  absl::flags
+  absl::flags_parse
+  absl::log
+  ${_REFLECTION}
+  ${_GRPC_GRPCPP}
+  ${_PROTOBUF_LIBPROTOBUF})
