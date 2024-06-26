@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package dbserver;
+
+service DbServer {
+	rpc operation (Request) returns (Response);
+}
+
+message Request {
+	string key = 1;
+}
+
+message Response {
+	string message = 1;
+}
