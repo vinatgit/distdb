@@ -16,12 +16,40 @@ int main( int argc, char** argv ) {
 	std::string targetStr( absl::GetFlag( FLAGS_target ) );
 	Client client( grpc::CreateChannel( targetStr, grpc::InsecureChannelCredentials() ) );
 
-	std::string opStr;
+	std::string key, framesStr, dataStr;
 	while( 1 ) {
-		std::cout << "Create message: ";
-		std::cin >> opStr;
-		std::string reply = client.operation( opStr );
-		LOG(INFO) << "CLIENT: Received " << reply; 
+		std::cout << "Enter key: ";
+		std::cin >> key;
+		std::cout << "Enter frames: ";
+		std::cin >> framesStr;
+		std::cout << "Enter data: ";
+                std::cin >> dataStr;
+
+		std::vector< uint32_t > frames;
+		while( !framesStr.empty() ) {
+			size_t idx = framesStr.find( ',' );
+			if( idx == std::string::npos ) {
+				frames.push_back( std::stoi( framesStr ) );
+				break;
+			}
+
+			frames.push_back( std::stoi( framesStr.substr( 0, idx ) ) );
+			framesStr = framesStr.substr( idx + 1 );
+		}
+		std::vector< int > data;
+		while( !dataStr.empty() ) {
+                        size_t idx = dataStr.find( ',' );
+                        if( idx == std::string::npos ) {
+                                data.push_back( std::stoi( dataStr ) );
+                                break;
+                        }
+
+                        data.push_back( std::stoi( dataStr.substr( 0, idx ) ) );
+                        dataStr = dataStr.substr( idx + 1 );
+                }
+
+		uint32_t rc = client.add( key, frames, data );
+		LOG(INFO) << "CLIENT: Received return code = " << rc; 
 	}
 
 	return 0;

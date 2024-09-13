@@ -1,7 +1,7 @@
-#ifndef DBSERVER_SERVER_H
-#define DBSERVER_SERVER_H
+#ifndef DATABASE_SERVER_H
+#define DATABASE_SERVER_H
 
-#include <memory>
+#include <mutex>
 #include <vector>
 
 #include "absl/log/log.h"
@@ -11,10 +11,17 @@
 
 #include "dbserver.grpc.pb.h"
 #include "dbserver.pb.h"
+#include "Index.h"
+#include "Metadata.h"
 
 class Database final : public dbserver::DbServer::Service {
 public:
-	grpc::Status operation( grpc::ServerContext* context, const dbserver::Request* request, dbserver::Response* response ) override;
+	grpc::Status add( grpc::ServerContext* context, const dbserver::Request* request, dbserver::Response* response ) override;
+
+private:
+	std::mutex mutex_;
+	Index index_;
+	Metadata meta_;
 };
 
-# endif // DBSERVER_SERVER_H
+# endif // DATABASE_SERVER_H

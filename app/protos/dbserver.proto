@@ -3,13 +3,16 @@ syntax = "proto3";
 package dbserver;
 
 service DbServer {
-	rpc operation (Request) returns (Response);
+	rpc add (Request) returns (Response);
 }
 
 message Request {
 	string key = 1;
+	repeated uint32 frames = 2 [packed=true];
+	repeated int32 data = 3 [packed=true];
 }
 
 message Response {
-	string message = 1;
+	optional uint32 rc = 1;
+	repeated int32 data = 2 [packed=true];
 }

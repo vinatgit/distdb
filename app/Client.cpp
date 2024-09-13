@@ -2,18 +2,23 @@
 
 #include "distdb/Client.h"
 
-std::string Client::operation( const std::string& key ) {
+uint32_t Client::add( const std::string& key, const std::vector< uint32_t >& frames, const std::vector< int >& data ) {
 	dbserver::Request request;
 	request.set_key( key );
+	for( auto& ele : frames ) {
+                request.add_frames( ele );
+        }
+	for( auto& ele : data ) {
+		request.add_data( ele );
+	}
 
 	dbserver::Response response;
 	grpc::ClientContext context;
-	grpc::Status status = stub_->operation( &context, request, &response );
+	grpc::Status status = stub_->add( &context, request, &response );
 
-	if( status.ok() ) {
-		return response.message();
-	} else {
-		LOG(ERROR) << "CLIENT: Call to operation failed with code " << status.error_code() << ": " << status.error_message();
-		return "RPC FAILED";
+	if( !status.ok() ) {
+		LOG(ERROR) << "CLIENT: Call to add failed with code " << status.error_code() << ": " << status.error_message();
 	}
+
+	return response.rc();
 }
