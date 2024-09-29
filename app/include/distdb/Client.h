@@ -1,5 +1,5 @@
-#ifndef DBSERVER_CLIENT_H
-#define DBSERVER_CLIENT_H
+#ifndef DATABASE_CLIENT_H
+#define DATABASE_CLIENT_H
 
 #include <chrono>
 #include <memory>
@@ -14,10 +14,11 @@ class Client {
 public:
 	Client( std::shared_ptr< grpc::Channel > channel ) : stub_( dbserver::DbServer::NewStub( channel ) ) {}
 
-	uint32_t add( const std::string& key, const std::vector< uint32_t >& frames, const std::vector< int >& data );
-
+	uint32_t add( const std::string& key, const uint64_t& timestamp, const std::vector< uint32_t >& data );
+	uint32_t get( const std::string& key, std::vector< uint32_t >& respData );
+	uint32_t remove( const std::string& key, const uint64_t& timestamp );
 private:
 	std::unique_ptr< dbserver::DbServer::Stub > stub_;	
 };
 
-#endif // DBSERVER_CLIENT_H
+#endif // DATABASE_CLIENT_H

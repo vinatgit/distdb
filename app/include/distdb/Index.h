@@ -1,27 +1,21 @@
-#ifndef INDEX_SERVER_H
-#define INDEX_SERVER_H
-
-#define DATA_DIMENSION 2
+#ifndef DATABASE_INDEX_H
+#define DATABASE_INDEX_H
 
 #include <vector>
 
 #include "absl/log/log.h"
 
+#include "Consts.h"
+
 class Index {
 public:
-        uint32_t add( const std::vector< int >& data ) {
-		if( data.size() % dimension_ != 0 ) {
-			LOG(ERROR) << "INDEX: Data has incorrect dimensions, expected dimension = " << dimension_;
-			return 1;
-		}
-
-		data_.insert( data_.end(), data.begin(), data.end() );
-		return 0;
-	}
+	RETURN_CODE add( const uint64_t& timestamp, const std::vector< uint32_t >& data );
+	RETURN_CODE get( uint64_t& timestamp, std::vector< uint32_t >& data ) const;
+	RETURN_CODE remove( const uint64_t& timestamp );
 
 private:
-	uint32_t dimension_ = DATA_DIMENSION;
-	std::vector< int > data_;
+	std::vector< uint64_t > timestamps_;
+	std::vector< std::vector< uint32_t > > data_;
 };
 
-# endif // INDEX_SERVER_H
+# endif // DATABASE_INDEX_H

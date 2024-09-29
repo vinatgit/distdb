@@ -1,7 +1,10 @@
-#ifndef DATABASE_SERVER_H
-#define DATABASE_SERVER_H
+#ifndef DATABASE_DATABASE_H
+#define DATABASE_DATABASE_H
 
-#include <mutex>
+#include <memory>
+#include <shared_mutex>
+#include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "absl/log/log.h"
@@ -11,17 +14,18 @@
 
 #include "dbserver.grpc.pb.h"
 #include "dbserver.pb.h"
+#include "Consts.h"
 #include "Index.h"
-#include "Metadata.h"
 
-class Database final : public dbserver::DbServer::Service {
+class Database {
 public:
-	grpc::Status add( grpc::ServerContext* context, const dbserver::Request* request, dbserver::Response* response ) override;
+	RETURN_CODE add( const std::string& path, const uint64_t& timestamp, const std::vector< uint32_t >& data );
+	RETURN_CODE get( const std::string& path, uint64_t& timestamp, std::vector< uint32_t >& data ) const;
+	RETURN_CODE remove( const std::string& path, const uint64_t& timestamp );
 
 private:
-	std::mutex mutex_;
-	Index index_;
-	Metadata meta_;
+	mutable std::shared_mutex mutex_;
+	std::unordered_map< std::string, std::shared_ptr< Index > > data_; 
 };
 
-# endif // DATABASE_SERVER_H
+#endif // DATABASE_DATABASE_H

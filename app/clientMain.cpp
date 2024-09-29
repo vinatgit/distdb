@@ -1,4 +1,5 @@
 #include <chrono>
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <thread>
@@ -16,39 +17,72 @@ int main( int argc, char** argv ) {
 	std::string targetStr( absl::GetFlag( FLAGS_target ) );
 	Client client( grpc::CreateChannel( targetStr, grpc::InsecureChannelCredentials() ) );
 
-	std::string key, framesStr, dataStr;
 	while( 1 ) {
-		std::cout << "Enter key: ";
-		std::cin >> key;
-		std::cout << "Enter frames: ";
-		std::cin >> framesStr;
-		std::cout << "Enter data: ";
-                std::cin >> dataStr;
+		int option;
+		std::cout << "Operations:" << std::endl;
+		std::cout << "Upload - 1" << std::endl;
+		std::cout << "Download - 2" << std::endl;
+		std::cout << "Delete - 3" << std::endl;
+		std::cout << "Select operation: ";
+		std::cin >> option;
 
-		std::vector< uint32_t > frames;
-		while( !framesStr.empty() ) {
-			size_t idx = framesStr.find( ',' );
-			if( idx == std::string::npos ) {
-				frames.push_back( std::stoi( framesStr ) );
-				break;
+		std::string path;
+                std::cout << "Enter path: ";
+                std::cin >> path;
+		uint32_t rc = 0;
+		uint64_t timestamp;
+
+		switch( option ) {
+		case 1: {
+			std::ifstream fd( path.c_str(), std::ios::binary | std::ios::ate );
+			if( !fd.good() ) {
+				LOG(ERROR) << "File " << path << " not found";
+				continue;
 			}
 
-			frames.push_back( std::stoi( framesStr.substr( 0, idx ) ) );
-			framesStr = framesStr.substr( idx + 1 );
+			timestamp = std::chrono::duration_cast< std::chrono::microseconds >( std::chrono::system_clock::now().time_since_epoch() ).count();
+			int fileSize = fd.tellg();
+			fd.seekg( 0, std::ios::beg );
+			char* buffer = new char[ fileSize ];
+			fd.read( buffer, fileSize );
+			auto bufferUint32 = reinterpret_cast< uint32_t* >( buffer );
+			std::vector< uint32_t > data( bufferUint32, bufferUint32 + fileSize / sizeof( uint32_t ) );
+			delete[] buffer;
+			fd.close();
+
+			rc = client.add( path, timestamp, data );
+			break;
 		}
-		std::vector< int > data;
-		while( !dataStr.empty() ) {
-                        size_t idx = dataStr.find( ',' );
-                        if( idx == std::string::npos ) {
-                                data.push_back( std::stoi( dataStr ) );
-                                break;
-                        }
+		case 2: {
+			std::string destinationDir;
+			std::cout << "Enter destination directory: ";
+			std::cin >> destinationDir;
+			std::vector< uint32_t > data;
+			rc = client.get( path, data );
 
-                        data.push_back( std::stoi( dataStr.substr( 0, idx ) ) );
-                        dataStr = dataStr.substr( idx + 1 );
-                }
-
-		uint32_t rc = client.add( key, frames, data );
+			size_t backslashPos = path.rfind( '/' );
+			std::string destinationPath = destinationDir + "/";
+			if( backslashPos == std::string::npos ) {
+				destinationPath += path;
+			} else {
+				destinationPath += path.substr( backslashPos + 1 );
+			}
+			LOG(INFO) << "Writing data to " << destinationPath;
+			std::ofstream fd( destinationPath.c_str(), std::ios::binary );
+			fd.write( reinterpret_cast< const char* >( data.data() ), data.size() * sizeof( uint32_t ) );
+			fd.close();
+			break;
+		}
+		case 3: {
+			timestamp = std::chrono::duration_cast< std::chrono::microseconds >( std::chrono::system_clock::now().time_since_epoch() ).count();
+			rc = client.remove( path, timestamp );
+                        break;
+		}
+		default: {
+			LOG(ERROR) << "Invalid option " << option;
+		}	
+		}
+			
 		LOG(INFO) << "CLIENT: Received return code = " << rc; 
 	}
 

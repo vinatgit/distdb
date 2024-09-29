@@ -2,34 +2,67 @@
 
 #include "distdb/Database.h"
 
-grpc::Status Database::add( grpc::ServerContext* context, const dbserver::Request* request, dbserver::Response* response ) {
-	std::string key = request->key();
-	std::vector< uint32_t > frames( request->frames_size() );
-	for( size_t idx = 0; idx < frames.size(); idx++ ) {
-		frames[ idx ] = request->frames( idx );
-	}
-
-	std::vector< int > data( request->data_size() );
-	for( size_t idx = 0; idx < data.size(); idx++ ) {
-                data[ idx ] = request->data( idx );
-        }
+RETURN_CODE Database::add( const std::string& path, const uint64_t& timestamp, const std::vector< uint32_t >& data ) {
+	std::unique_lock< std::shared_mutex > lock( mutex_ );
 	
-	LOG(INFO) << "DATABASE: Received request for add " << key;
+	std::shared_ptr< Index > indexPtr = nullptr;
 	{
-		std::lock_guard< std::mutex > lock( mutex_ );
-		uint32_t rc = index_.add( data );
-		if( rc != 0 ) {
-			response->set_rc( rc );
-			return grpc::Status::OK;
+		auto dataIt = data_.find( path );
+		if( dataIt == data_.end() ) {
+			dataIt = data_.insert( { path, std::make_shared< Index >() } ).first;
 		}
 
-		rc = meta_.add( key, frames );
-		if( rc != 0 ) {
-                        response->set_rc( rc );
-                        return grpc::Status::OK;
-                }
+		indexPtr = dataIt->second;
 	}
 
-	response->set_rc( 0 );
-	return grpc::Status::OK;
+	RETURN_CODE rc = indexPtr->add( timestamp, data );
+	if( rc != RETURN_CODE::NO_ERROR ) {
+		return rc;
+	}
+
+	return RETURN_CODE::NO_ERROR;
+}
+
+RETURN_CODE Database::get( const std::string& path, uint64_t& timestamp, std::vector< uint32_t >& data ) const {
+	std::shared_lock< std::shared_mutex > lock( mutex_ );
+
+	std::shared_ptr< Index > indexPtr = nullptr;
+        {
+                auto dataIt = data_.find( path );
+                if( dataIt == data_.end() ) {
+			LOG(ERROR) << "DATABASE: Path " << path << " does not exist"; 
+			return RETURN_CODE::DATABASE_PATH_NOT_FOUND;
+                }
+
+                indexPtr = dataIt->second;
+        }
+        
+        RETURN_CODE rc = indexPtr->get( timestamp, data );
+        if( rc != RETURN_CODE::NO_ERROR ) {
+                return rc;
+        }
+
+        return RETURN_CODE::NO_ERROR;
+}
+
+RETURN_CODE Database::remove( const std::string& path, const uint64_t& timestamp ) {
+        std::unique_lock< std::shared_mutex > lock( mutex_ );
+
+        std::shared_ptr< Index > indexPtr = nullptr;
+        {
+                auto dataIt = data_.find( path );
+                if( dataIt == data_.end() ) {
+			LOG(ERROR) << "DATABASE: Path " << path << " does not exist";
+                        return RETURN_CODE::DATABASE_PATH_NOT_FOUND;
+                }
+
+                indexPtr = dataIt->second;
+        }
+
+        RETURN_CODE rc = indexPtr->remove( timestamp );
+        if( rc != RETURN_CODE::NO_ERROR ) {
+                return rc;
+        }
+
+        return RETURN_CODE::NO_ERROR;
 }

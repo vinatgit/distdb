@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 
 project(DatabaseServer VERSION 1.0)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} -O3 -g -fPIC")
 IF(APPLE)
@@ -50,7 +50,7 @@ target_link_libraries(db_grpc_proto
   ${_PROTOBUF_LIBPROTOBUF})
 
 # Target server
-add_executable(server serverMain.cpp Database.cpp)
+add_executable(server serverMain.cpp DbServer.cpp Database.cpp Index.cpp)
 target_link_libraries(server
   db_grpc_proto
   absl::check

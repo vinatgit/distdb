@@ -8,13 +8,13 @@
 #include "absl/log/log.h"
 #include "absl/strings/str_format.h"
 
-#include "distdb/Database.h"
+#include "distdb/DbServer.h"
 
 ABSL_FLAG( uint16_t, port, 50051, "Server port for the service" );
 
 void runServer( uint16_t port ) {
 	std::string serverAddress = absl::StrFormat( "0.0.0.0:%d", port );
-	Database service;
+	Server service;
 
 	grpc::EnableDefaultHealthCheckService( true );
 	grpc::reflection::InitProtoReflectionServerBuilderPlugin();
