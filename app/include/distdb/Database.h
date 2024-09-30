@@ -19,8 +19,8 @@
 
 class Database {
 public:
-	RETURN_CODE add( const std::string& path, const uint64_t& timestamp, const std::vector< uint32_t >& data );
-	RETURN_CODE get( const std::string& path, uint64_t& timestamp, std::vector< uint32_t >& data ) const;
+	RETURN_CODE add( const std::string& path, const uint64_t& timestamp, const uint64_t& fileSize, const std::vector< uint32_t >& data );
+	RETURN_CODE get( const std::string& path, uint64_t& timestamp, uint64_t& fileSize, std::vector< uint32_t >& data ) const;
 	RETURN_CODE remove( const std::string& path, const uint64_t& timestamp );
 
 private:

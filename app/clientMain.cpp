@@ -41,24 +41,25 @@ int main( int argc, char** argv ) {
 			}
 
 			timestamp = std::chrono::duration_cast< std::chrono::microseconds >( std::chrono::system_clock::now().time_since_epoch() ).count();
-			int fileSize = fd.tellg();
+			uint64_t fileSize = fd.tellg();
 			fd.seekg( 0, std::ios::beg );
 			char* buffer = new char[ fileSize ];
 			fd.read( buffer, fileSize );
 			auto bufferUint32 = reinterpret_cast< uint32_t* >( buffer );
-			std::vector< uint32_t > data( bufferUint32, bufferUint32 + fileSize / sizeof( uint32_t ) );
+			std::vector< uint32_t > data( bufferUint32, bufferUint32 + (uint32_t)ceil( (double)fileSize / sizeof( uint32_t ) ) );
 			delete[] buffer;
 			fd.close();
 
-			rc = client.add( path, timestamp, data );
+			rc = client.add( path, timestamp, fileSize, data );
 			break;
 		}
 		case 2: {
 			std::string destinationDir;
 			std::cout << "Enter destination directory: ";
 			std::cin >> destinationDir;
+			uint64_t fileSize;
 			std::vector< uint32_t > data;
-			rc = client.get( path, data );
+			rc = client.get( path, fileSize, data );
 
 			size_t backslashPos = path.rfind( '/' );
 			std::string destinationPath = destinationDir + "/";
@@ -69,7 +70,7 @@ int main( int argc, char** argv ) {
 			}
 			LOG(INFO) << "Writing data to " << destinationPath;
 			std::ofstream fd( destinationPath.c_str(), std::ios::binary );
-			fd.write( reinterpret_cast< const char* >( data.data() ), data.size() * sizeof( uint32_t ) );
+			fd.write( reinterpret_cast< const char* >( data.data() ), fileSize );
 			fd.close();
 			break;
 		}

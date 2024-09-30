@@ -2,7 +2,7 @@
 
 #include "distdb/Database.h"
 
-RETURN_CODE Database::add( const std::string& path, const uint64_t& timestamp, const std::vector< uint32_t >& data ) {
+RETURN_CODE Database::add( const std::string& path, const uint64_t& timestamp, const uint64_t& fileSize, const std::vector< uint32_t >& data ) {
 	std::unique_lock< std::shared_mutex > lock( mutex_ );
 	
 	std::shared_ptr< Index > indexPtr = nullptr;
@@ -15,7 +15,7 @@ RETURN_CODE Database::add( const std::string& path, const uint64_t& timestamp, c
 		indexPtr = dataIt->second;
 	}
 
-	RETURN_CODE rc = indexPtr->add( timestamp, data );
+	RETURN_CODE rc = indexPtr->add( timestamp, fileSize, data );
 	if( rc != RETURN_CODE::NO_ERROR ) {
 		return rc;
 	}
@@ -23,7 +23,7 @@ RETURN_CODE Database::add( const std::string& path, const uint64_t& timestamp, c
 	return RETURN_CODE::NO_ERROR;
 }
 
-RETURN_CODE Database::get( const std::string& path, uint64_t& timestamp, std::vector< uint32_t >& data ) const {
+RETURN_CODE Database::get( const std::string& path, uint64_t& timestamp, uint64_t& fileSize, std::vector< uint32_t >& data ) const {
 	std::shared_lock< std::shared_mutex > lock( mutex_ );
 
 	std::shared_ptr< Index > indexPtr = nullptr;
@@ -37,7 +37,7 @@ RETURN_CODE Database::get( const std::string& path, uint64_t& timestamp, std::ve
                 indexPtr = dataIt->second;
         }
         
-        RETURN_CODE rc = indexPtr->get( timestamp, data );
+        RETURN_CODE rc = indexPtr->get( timestamp, fileSize, data );
         if( rc != RETURN_CODE::NO_ERROR ) {
                 return rc;
         }

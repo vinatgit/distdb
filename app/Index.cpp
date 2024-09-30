@@ -2,20 +2,22 @@
 
 #include "distdb/Index.h"
 
-RETURN_CODE Index::add( const uint64_t& timestamp, const std::vector< uint32_t >& data ) {
+RETURN_CODE Index::add( const uint64_t& timestamp, const uint64_t& fileSize, const std::vector< uint32_t >& data ) {
 	timestamps_.emplace_back( timestamp );
+	sizes_.emplace_back( fileSize );
 	data_.emplace_back( std::move( data ) );
 
 	return RETURN_CODE::NO_ERROR;
 }
 
-RETURN_CODE Index::get( uint64_t& timestamp, std::vector< uint32_t >& data ) const {
+RETURN_CODE Index::get( uint64_t& timestamp, uint64_t& fileSize, std::vector< uint32_t >& data ) const {
 	if( data_.empty() ) {
 		LOG(ERROR) << "INDEX: No data found";
 		return RETURN_CODE::INDEX_NO_DATA;
 	}
 
 	timestamp = timestamps_.back();
+	fileSize = sizes_.back();
 	data = data_.back();
 	if( data.empty() ) {
 		LOG(ERROR) << "INDEX: File has been deleted";
